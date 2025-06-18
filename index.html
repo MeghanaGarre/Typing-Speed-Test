@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Typing Speed Test</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <h1>Typing Speed Test</h1>
+  <div id="text-display"></div>
+  <input type="text" id="text-input" placeholder="Start typing..." autocomplete="off" />
+  <div id="result"></div>
+  <button onclick="submitTyping()">SUBMIT</button>
+  <button onclick="retryTyping()">RETRY</button>
+
+  <script>
+    const sentence = `{{ sentence|safe }}`;
+    const textDisplay = document.getElementById("text-display");
+    const input = document.getElementById("text-input");
+    const result = document.getElementById("result");
+    let startTime;
+
+    // Setup sentence as spans
+    textDisplay.innerHTML = sentence.split('').map(char => `<span>${char}</span>`).join('');
+    const spans = textDisplay.querySelectorAll('span');
+
+    input.addEventListener("focus", () => {
+      if (!startTime) startTime = new Date();
+    });
+
+    input.addEventListener("input", () => {
+      const val = input.value;
+      spans.forEach((span, index) => {
+        if (val[index] == null) {
+          span.className = "default";
+        } else if (val[index] === span.textContent) {
+          span.className = "correct";
+        } else {
+          span.className = "incorrect";
+        }
+      });
+    });
+
+    function submitTyping() {
+      const typed = input.value;
+      const endTime = new Date();
+      const timeTaken = (endTime - startTime) / 1000;
+      const wordCount = typed.trim().split(/\s+/).length;
+      const wpm = Math.round((wordCount / timeTaken) * 60);
+
+      let correctChars = 0;
+      for (let i = 0; i < typed.length; i++) {
+        if (typed[i] === sentence[i]) correctChars++;
+      }
+      const accuracy = ((correctChars / sentence.length) * 100).toFixed(2);
+
+      result.textContent = `⏱ Time: ${timeTaken.toFixed(1)}s | ⌨️ WPM: ${wpm} | 🎯 Accuracy: ${accuracy}%`;
+    }
+
+      function retryTyping() {
+        window.location.href = "/";
+      }
+  </script>
+</body>
+</html>
